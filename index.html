@@ -24,10 +24,10 @@
 
     <!-- Tabs Switcher -->
     <div class="bg-white rounded-xl p-2 shadow-sm border border-slate-200 inline-flex gap-2">
-      <button id="tab-box" onclick="switchTab('box')" class="px-6 py-2 rounded-lg font-medium text-sm transition bg-indigo-50 text-indigo-600 border border-indigo-200">
+      <button id="tab-box" onclick="switchTab('box')" class="px-6 py-2 rounded-lg font-medium text-sm text-slate-500 hover:bg-slate-50 transition">
         📦 Box Stock
       </button>
-      <button id="tab-partition" onclick="switchTab('partition')" class="px-6 py-2 rounded-lg font-medium text-sm text-slate-500 hover:bg-slate-50 transition">
+      <button id="tab-partition" onclick="switchTab('partition')" class="px-6 py-2 rounded-lg font-medium text-sm transition bg-indigo-50 text-indigo-600 border border-indigo-200">
         🧩 Partition Stock
       </button>
     </div>
@@ -40,22 +40,25 @@
   </div>
 
   <script>
-    // 🔴 ใส่ Web App URL ของคุณที่นี่
+    // 🔴 วาง Web App URL จาก Apps Script ของคุณที่นี่
     const APPS_SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxwNQc-l9Y2PZSnJMY73pZFWqoYwHzT1V_Kq-ksB1I6ejy9_kxgtMO_wFKQ83cvIfq1SA/exec";
 
     let allData = [];
-    let currentTab = 'partition';
+    let currentTab = 'box'; // ค่าเริ่มต้นให้แสดง Box Stock ก่อน
 
-    function renderCards(data) {
+    function renderCards() {
       const container = document.getElementById('cards-container');
       container.innerHTML = '';
 
-      if (!data || data.length === 0) {
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ไม่พบข้อมูล หรือกำลังดึงข้อมูล...</div>`;
+      // กรองข้อมูลแยกตามประเภท (box / partition)
+      const filteredData = allData.filter(item => item.type === currentTab);
+
+      if (!filteredData || filteredData.length === 0) {
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-slate-400">ไม่พบข้อมูลในหมวดนี้</div>`;
         return;
       }
 
-      data.forEach(item => {
+      filteredData.forEach(item => {
         const isPositive = item.diff >= 0;
         const statusText = isPositive ? `Stock เกิน +${item.diff.toLocaleString()}` : `Stock ขาด ${item.diff.toLocaleString()}`;
         const badgeBg = isPositive ? 'bg-emerald-50 text-emerald-600 border-emerald-200' : 'bg-rose-50 text-rose-600 border-rose-200';
@@ -101,10 +104,10 @@
       try {
         const res = await fetch(APPS_SCRIPT_URL);
         allData = await res.json();
-        renderCards(allData);
+        renderCards();
       } catch (err) {
         console.error(err);
-        container.innerHTML = `<div class="col-span-full text-center py-12 text-rose-500 font-medium">❌ เกิดข้อผิดพลาดในการดึงข้อมูล กรุณาตรวจสอบ URL หรือการบันทึก Deploy</div>`;
+        container.innerHTML = `<div class="col-span-full text-center py-12 text-rose-500 font-medium">❌ เกิดข้อผิดพลาดในการดึงข้อมูล</div>`;
       }
     }
 
@@ -118,10 +121,10 @@
         ? "px-6 py-2 rounded-lg font-medium text-sm transition bg-indigo-50 text-indigo-600 border border-indigo-200" 
         : "px-6 py-2 rounded-lg font-medium text-sm text-slate-500 hover:bg-slate-50 transition";
       
-      renderCards(allData);
+      renderCards();
     }
 
-    // โหลดข้อมูลอัตโนมัติเมื่อเปิดหน้าเว็บ
+    // โหลดข้อมูลเมื่อเปิดหน้าเว็บ
     fetchData();
   </script>
 </body>
